@@ -194,7 +194,10 @@ setInitDirection[map_SnakeMap,direct_]:=ReplacePart[map,{3,2}->direct]
 
 
 (*currying*)
-Do[With[{f=f},f[arg_][map_]:=f[map,arg]],{f,{setMapSize,setWalls,setInitSnake,setInitDirection}}]
+Do[
+  With[{f=f},f[arg_][map_]:=f[map,arg]],
+  {f,{setMapSize,setWalls,setInitSnake,setInitDirection}}
+]
 
 
 (* ::Subsubsection::Closed:: *)
@@ -220,18 +223,28 @@ mapPosition[size_][pos_]:=mapPosition[pos,size]
 parseCreateMapOpt["MapSize",OptionsPattern[CreateSnakeMap]]:=With[{val=OptionValue["MapSize"]},
     If[ListQ[val],val,{val,val}]/;validMapSizeQ[val]
   ]
-parseCreateMapOpt["MapSize",OptionsPattern[CreateSnakeMap]]:=$iDefaultSnakeMapSize/;OptionValue["MapSize"]===Automatic
-parseCreateMapOpt["MapSize",OptionsPattern[CreateSnakeMap]]:=(Message[SnakeMap::invsiz,OptionValue["MapSize"]];$iDefaultSnakeMapSize)
-parseCreateMapOpt["StartingPoint",opts:OptionsPattern[CreateSnakeMap]]:=mapPosition[OptionValue["StartingPoint"],parseCreateMapOpt["MapSize",opts]]
-parseCreateMapOpt["InitialDirection",OptionsPattern[CreateSnakeMap]]:=With[{val=OptionValue["InitialDirection"]},
+parseCreateMapOpt["MapSize",OptionsPattern[CreateSnakeMap]]:=
+  $iDefaultSnakeMapSize/;OptionValue["MapSize"]===Automatic
+parseCreateMapOpt["MapSize",OptionsPattern[CreateSnakeMap]]:=(
+  Message[SnakeMap::invsiz,OptionValue["MapSize"]];
+  $iDefaultSnakeMapSize)
+parseCreateMapOpt["StartingPoint",opts:OptionsPattern[CreateSnakeMap]]:=
+    mapPosition[OptionValue["StartingPoint"],parseCreateMapOpt["MapSize",opts]]
+parseCreateMapOpt["InitialDirection",OptionsPattern[CreateSnakeMap]]:=
+  With[{val=OptionValue["InitialDirection"]},
     val/;validDirectionQ[val]
   ]
-parseCreateMapOpt["InitialDirection",OptionsPattern[CreateSnakeMap]]:=$iDefaultSnakeInitialDirection/;OptionValue["InitialDirection"]===Automatic
-parseCreateMapOpt["InitialDirection",OptionsPattern[CreateSnakeMap]]:=(Message[SnakeGame::invdrt,OptionValue["InitialDirection"]];$iDefaultSnakeInitialDirection)
-parseCreateMapOpt["Walls",opts:OptionsPattern[CreateSnakeMap]]:=mapPosition[parseCreateMapOpt["MapSize",opts]]/@OptionValue["Walls"]//DeleteDuplicates
+parseCreateMapOpt["InitialDirection",OptionsPattern[CreateSnakeMap]]:=
+  $iDefaultSnakeInitialDirection/;OptionValue["InitialDirection"]===Automatic
+parseCreateMapOpt["InitialDirection",OptionsPattern[CreateSnakeMap]]:=(
+  Message[SnakeGame::invdrt,OptionValue["InitialDirection"]];
+  $iDefaultSnakeInitialDirection)
+parseCreateMapOpt["Walls",opts:OptionsPattern[CreateSnakeMap]]:=
+  mapPosition[parseCreateMapOpt["MapSize",opts]]/@OptionValue["Walls"]//DeleteDuplicates
 
 
-parseCreateMapOpts[opts:OptionsPattern[CreateSnakeMap]]:=<|(#->parseCreateMapOpt[#,opts]&)/@Keys@Options[CreateSnakeMap]|>
+parseCreateMapOpts[opts:OptionsPattern[CreateSnakeMap]]:=
+  <|(#->parseCreateMapOpt[#,opts]&)/@Keys@Options[CreateSnakeMap]|>
 
 
 generateInitSnake[pos_,direct_,size_]:={movedHead[pos,size,direct],pos}
@@ -244,10 +257,12 @@ generateWalls["Enclosed",{w_,l_}]:=Union[
     Thread[{Range[w],1}],
     Thread[{Range[w],l}]
   ]
-generateWalls["Random",{w_,l_}]:=RandomVariate[DiscreteUniformDistribution[{{1,w},{1,l}}],RandomInteger[{1,w*l/2}]]//DeleteDuplicates
+generateWalls["Random",{w_,l_}]:=
+  RandomVariate[DiscreteUniformDistribution[{{1,w},{1,l}}],RandomInteger[{1,w*l/2}]]//DeleteDuplicates
 
 
-iCreateSnakeMap[temp_String,opts_Association]:=With[{size=opts["MapSize"],direct=opts["InitialDirection"]},
+iCreateSnakeMap[temp_String,opts_Association]:=
+  With[{size=opts["MapSize"],direct=opts["InitialDirection"]},
     initSnakeMap[]//setMapSize[size]
                   //setWalls[opts["Walls"]~Union~generateWalls[temp,size]]
                   //setInitDirection[direct]
@@ -301,7 +316,10 @@ setScore[game_SnakeGame,score_Integer]:=ReplacePart[game,5->score]
 
 
 (*currying*)
-Do[With[{f=f},f[arg_][game_]:=f[game,arg]],{f,{setMap,setSpeed,setSnakeBody,setSnakeDirection,setGrowing,setBonus,setScore}}]
+Do[
+  With[{f=f},f[arg_][game_]:=f[game,arg]],
+  {f,{setMap,setSpeed,setSnakeBody,setSnakeDirection,setGrowing,setBonus,setScore}}
+]
 
 
 (* ::Subsubsection::Closed:: *)
@@ -312,7 +330,11 @@ getMapSize[game_SnakeGame]:=getMapSize@getMap[game]
 getMapWidth[game_SnakeGame]:=getMapWidth@getMap[game]
 getMapLength[game_SnakeGame]:=getMapLength@getMap[game]
 getWalls[game_SnakeGame]:=getWalls@getMap[game]
-getEmptyGround[game_SnakeGame]:=Complement[getMapPositions@getMap@game,getWalls@game,getSnakeBody@game]
+getEmptyGround[game_SnakeGame]:=Complement[
+    getMapPositions@getMap@game,
+    getWalls@game,
+    getSnakeBody@game
+  ]
 
 
 (* ::Subsubsection::Closed:: *)
@@ -329,7 +351,8 @@ movedHead[head_,size_,"Up"]   :=mapPosition[head+{0, 1},size]
 movedHead[head_,size_,"Down"] :=mapPosition[head+{0,-1},size]
 movedHead[head_,size_,"Left"] :=mapPosition[head+{-1,0},size]
 movedHead[head_,size_,"Right"]:=mapPosition[head+{ 1,0},size]
-moveSnake[game_SnakeGame]:=With[{body=getSnakeBody@game},
+moveSnake[game_SnakeGame]:=
+  With[{body=getSnakeBody@game},
     setSnakeBody[game,
       Prepend[
         If[isGrowing@game,body,Most@body],
@@ -368,7 +391,8 @@ setGameOptions[game_SnakeGame,opts:OptionsPattern[]]:=changeSpeed[game,OptionVal
 
 
 iNewSnakeGame[map_SnakeMap,Automatic]:=iNewSnakeGame[map,Floor[Length@$iSnakeGameRates/2]]
-iNewSnakeGame[map_SnakeMap,speed_Integer]:=With[
+iNewSnakeGame[map_SnakeMap,speed_Integer]:=
+  With[
     {snake=getInitSnake@map,
      direct=getInitDirection@map},
     initSnakeGame[]//setMap[map]
@@ -384,7 +408,8 @@ iNewSnakeGame[map_SnakeMap,speed_Integer]:=With[
 
 
 PlaySnakeGame[opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[opts]]
-PlaySnakeGame[game_SnakeGame,opts:OptionsPattern[]]:=Exec@setGameOptions[game,FilterRules[opts,Options[setGameOptions]]]
+PlaySnakeGame[game_SnakeGame,opts:OptionsPattern[]]:=
+  Exec@setGameOptions[game,FilterRules[opts,Options[setGameOptions]]]
 PlaySnakeGame[map_SnakeMap,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
 PlaySnakeGame[game_String?archiveFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
 PlaySnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
@@ -399,7 +424,8 @@ PlaySnakeGame[arg_,opts:OptionsPattern[]]:=(
 NewSnakeGame[opts:OptionsPattern[]]:=NewSnakeGame[CreateSnakeMap@@FilterRules[{opts},Options[CreateSnakeMap]],opts]
 NewSnakeGame[map_SnakeMap,OptionsPattern[]]:=iNewSnakeGame[map,OptionValue["SpeedLevel"]]
 NewSnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
-NewSnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=NewSnakeGame[CreateSnakeMap[map,Sequence@@FilterRules[{opts},Options[CreateSnakeMap]]],opts]
+NewSnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=
+  NewSnakeGame[CreateSnakeMap[map,Sequence@@FilterRules[{opts},Options[CreateSnakeMap]]],opts]
 NewSnakeGame[map_File,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
 NewSnakeGame[map_LocalObject,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
 NewSnakeGame[map_CloudObject,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
@@ -412,18 +438,25 @@ NewSnakeGame[arg_,opts:OptionsPattern[]]:=(
 (*GUI*)
 
 
-bonusBasePrimitive=(ImplicitRegion[(x^2+y^2-1)^3<=x^2*y^3,{x,y}]//Region//Show//First)/.{Directive[_]:>Directive[Red,EdgeForm[Yellow]]}
+bonusBasePrimitive=
+  (ImplicitRegion[(x^2+y^2-1)^3<=x^2*y^3,{x,y}]//Region//Show//First)/.
+    {Directive[_]:>Directive[Red,EdgeForm[Yellow]]}
 
 
-mapPrimitives[map_SnakeMap]:={Brown,Rectangle[{1,1},getMapSize[map]+1],Gray,Rectangle/@getWalls[map]}
+mapPrimitives[map_SnakeMap]:={
+    Brown,Rectangle[{1,1},getMapSize[map]+1],
+    Gray,Rectangle/@getWalls[map]
+  }
 snakePrimitives[game_SnakeGame]:={Darker@Green,Rectangle/@getSnakeBody[game]}
-bonusPrimitive[game_SnakeGame]:=GeometricTransformation[bonusBasePrimitive,AffineTransform[{{{1/3,0},{0,1/3}},getBonus[game]+1/2}]]
+bonusPrimitive[game_SnakeGame]:=
+  GeometricTransformation[bonusBasePrimitive,AffineTransform[{{{1/3,0},{0,1/3}},getBonus[game]+1/2}]]
 
 
 SnakeMap/:Show[map_SnakeMap]:=Graphics@mapPrimitives[map]
 
 
-SnakeGame/:Show[game_SnakeGame]:=Graphics[
+SnakeGame/:Show[game_SnakeGame]:=
+  Graphics[
     {snakePrimitives[game],bonusPrimitive[game]},
     Prolog->mapPrimitives@getMap[game],
     PlotRange->Transpose@{{1,1},1+getMapSize@game}
