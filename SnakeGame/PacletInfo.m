@@ -8,7 +8,7 @@ Palcet[
     {
       "Kernel",
       "Root"->".",
-      "Context"->{"SnakeGame`"}
+      "Context"->{"SnakeGame`","SnakeGame`GUI`"}
     }
   }
 ]

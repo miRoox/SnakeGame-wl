@@ -76,7 +76,7 @@ SetAttributes[{SnakeGame,SnakeMap},ReadProtected]
 BeginPackage["`GUI`"]
 
 
-Exec::usage="Exec[game] execute the snake game."
+ExecSnake::usage="ExecSnake[game] execute the snake game."
 
 
 EndPackage[]
@@ -409,7 +409,7 @@ iNewSnakeGame[map_SnakeMap,speed_Integer]:=
 
 PlaySnakeGame[opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[opts]]
 PlaySnakeGame[game_SnakeGame,opts:OptionsPattern[]]:=
-  Exec@setGameOptions[game,FilterRules[opts,Options[setGameOptions]]]
+  ExecSnake@setGameOptions[game,FilterRules[opts,Options[setGameOptions]]]
 PlaySnakeGame[map_SnakeMap,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
 PlaySnakeGame[game_String?archiveFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
 PlaySnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
@@ -444,8 +444,8 @@ bonusBasePrimitive=
 
 
 mapPrimitives[map_SnakeMap]:={
-    Brown,Rectangle[{1,1},getMapSize[map]+1],
-    Gray,Rectangle/@getWalls[map]
+    {Brown,Rectangle[{1,1},getMapSize[map]+1]},
+    {Gray,Rectangle/@getWalls[map]}
   }
 snakePrimitives[game_SnakeGame]:={Darker@Green,Rectangle/@getSnakeBody[game]}
 bonusPrimitive[game_SnakeGame]:=
@@ -453,8 +453,6 @@ bonusPrimitive[game_SnakeGame]:=
 
 
 SnakeMap/:Show[map_SnakeMap]:=Graphics@mapPrimitives[map]
-
-
 SnakeGame/:Show[game_SnakeGame]:=
   Graphics[
     {snakePrimitives[game],bonusPrimitive[game]},
@@ -463,7 +461,56 @@ SnakeGame/:Show[game_SnakeGame]:=
   ]
 
 
-Exec
+SetAttributes[doGameUpdate,HoldAll]
+doGameUpdate[game_,turnto_]:=(
+  game=update[game,turnto];
+  turnto=Inherited;)
+
+
+gameMainUi[]:=
+  DynamicModule[
+    {
+      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}],
+      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}],
+      game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}],
+      turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]
+    },
+    DynamicWrapper[
+      Pane[
+        Dynamic[
+          doGameUpdate[game,turnto];
+          Show[game],
+          UpdateInterval->Dynamic[
+            If[run, $iSnakeGameRates[[speed]], Infinity],
+            TrackedSymbols:>{run,speed}
+          ],
+          TrackedSymbols->{}
+        ],
+        Alignment->Center
+      ],(*Synchronize*)
+      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];
+      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];
+      CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=setSpeed[game,speed];
+      CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=turnto;(* TODO: try other way for sync *)
+    ]
+  ]
+gameEventDispatch={
+  "" (* TODO: Add events & event handler *)
+}
+ExecSnake[game_SnakeGame]:=
+  CreateWindow[
+    DialogNotebook[
+      gameMainUi[],
+      TaggingRules->{
+        "Running"->True,
+        "SpeedLevel"->getSpeed[game],
+        "Game"->game,
+        "TurningTo"->Inherited
+      },
+      NotebookEventActions->gameEventDispatch,
+      DockedCells->{} (* TODO: Toolbar *)
+    ]
+  ]
 
 
 (* ::Section:: *)
