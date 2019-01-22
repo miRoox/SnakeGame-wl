@@ -465,6 +465,11 @@ SetAttributes[doGameUpdate,HoldAll]
 doGameUpdate[game_,turnto_]:=(
   game=update[game,turnto];
   turnto=Inherited;)
+actionToggleRunStatus[]:=With[
+    {run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]},
+    run=!run
+  ]
+actionTurnTo[direct_]:=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=direct
 
 
 gameMainUi[]:=
@@ -477,25 +482,35 @@ gameMainUi[]:=
     },
     DynamicWrapper[
       Pane[
-        Dynamic[
-          doGameUpdate[game,turnto];
-          Show[game],
-          UpdateInterval->Dynamic[
-            If[run, $iSnakeGameRates[[speed]], Infinity],
-            TrackedSymbols:>{run,speed}
+        Graphics[{
+          Dynamic[
+            doGameUpdate[game,turnto];
+            snakePrimitives[game],
+            UpdateInterval->Dynamic[
+              If[run, $iSnakeGameRates[[speed]], Infinity],
+              TrackedSymbols:>{run,speed}
+            ],
+            TrackedSymbols->{}
           ],
-          TrackedSymbols->{}
+          Dynamic[bonusPrimitive[game],TrackedSymbols:>{game}]
+        },
+          Prolog->mapPrimitives@getMap[game],
+          PlotRange->Transpose@{{1,1},1+getMapSize@game}
         ],
         Alignment->Center
       ],(*Synchronize*)
-      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];
-      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];
-      CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=setSpeed[game,speed];
-      CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=turnto;(* TODO: try other way for sync *)
+      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];(*in*)
+      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];(*in*)
+      turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}];(*in*)
+      CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=setSpeed[game,speed];(*out*)
     ]
   ]
-gameEventDispatch={
-  "" (* TODO: Add events & event handler *)
+gameEventDispatch={(* TODO: maybe close? *)
+  "EscapeKeyDown":>actionToggleRunStatus[],
+  "LeftArrowKeyDown":>actionTurnTo["Left"],{"KeyDown","D"}:>actionTurnTo["Left"],
+  "RightArrowKeyDown":>actionTurnTo["Right"],{"KeyDown","A"}:>actionTurnTo["Right"],
+  "UpArrowKeyDown":>actionTurnTo["Up"],{"KeyDown","W"}:>actionTurnTo["Up"],
+  "DownArrowKeyDown":>actionTurnTo["Down"],{"KeyDown","S"}:>actionTurnTo["Down"],
 }
 ExecSnake[game_SnakeGame]:=
   CreateWindow[
@@ -503,9 +518,9 @@ ExecSnake[game_SnakeGame]:=
       gameMainUi[],
       TaggingRules->{
         "Running"->True,
+        "TurningTo"->Inherited,
         "SpeedLevel"->getSpeed[game],
-        "Game"->game,
-        "TurningTo"->Inherited
+        "Game"->game
       },
       NotebookEventActions->gameEventDispatch,
       DockedCells->{} (* TODO: Toolbar *)
