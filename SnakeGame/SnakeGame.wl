@@ -439,6 +439,13 @@ NewSnakeGame[arg_,opts:OptionsPattern[]]:=(
 (*GUI*)
 
 
+runIcon=Graphics[{Lighter@Green,Triangle[{{0.2,0.2},{0.2,0.8},{0.8,0.5}}]},PlotRange->{{0,1},{0,1}},ImageSize->32]
+runHoverIcon=Graphics[{Green,Triangle[{{0.2,0.2},{0.2,0.8},{0.8,0.5}}]},PlotRange->{{0,1},{0,1}},ImageSize->32]
+stopIcon=Graphics[{Lighter@Red,Rectangle[{0.2,0.2},{0.4,0.8}],Rectangle[{0.6,0.2},{0.8,0.8}]},PlotRange->{{0,1},{0,1}},ImageSize->32]
+stopHoverIcon=Graphics[{Red,Rectangle[{0.2,0.2},{0.4,0.8}],Rectangle[{0.6,0.2},{0.8,0.8}]},PlotRange->{{0,1},{0,1}},ImageSize->32]
+overIcon=Graphics[{Lighter@Gray,Thickness[0.15],Circle[{0.5,0.5},0.35],Line[{{0.27,0.27},{0.73,0.73}}]},PlotRange->{{0,1},{0,1}},ImageSize->32]
+
+
 bonusBasePrimitive=
   (ImplicitRegion[(x^2+y^2-1)^3<=x^2*y^3,{x,y}]//Region//Show//First)/.
     {Directive[_]:>Directive[Red,EdgeForm[Yellow]]}
@@ -529,11 +536,26 @@ gameMainUi[]:=
     ]
   ]
 
-
+runStatusToggler:=Toggler[
+    Dynamic[CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]],
+    {
+      True->Mouseover[stopIcon,stopHoverIcon],
+      False->Mouseover[runIcon,runHoverIcon]
+    },
+    overIcon,
+    Enabled->Dynamic[BooleanQ[CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]]]
+  ]
+scoreView:=Row@{
+    "Score: ",
+    Dynamic[getScore@CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]]
+  }
 gameToolbar:=
   Grid[{{
-    ,
-  }}
+    runStatusToggler,
+    Null,
+    scoreView
+  }},
+    ItemSize->{Scaled /@ {0.2, 0.6, 0.2}}
   ]
 
 
