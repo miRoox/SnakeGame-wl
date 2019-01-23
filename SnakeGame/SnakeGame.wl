@@ -35,6 +35,7 @@ $SnakeDirections::usage="$SnakeDirections gives the valid direction names."
 $SnakeGameRates::usage="$SnakeGameRates is a settable global variable that specifies the game rates."
 $DefaultSnakeMapSize::usage="$DefaultSnakeMapSize is the default setting for the size of snake map."
 $DefaultSnakeInitialDirection::usage="$DefaultSnakeInitialDirection is the default setting for the initial direction of snake map."
+$gameover::usage="$gameover is an internal symbol."
 
 
 Options[NewSnakeGame]=
@@ -464,14 +465,32 @@ SnakeGame/:Show[game_SnakeGame]:=
 (* ::Subsubsection::Closed:: *)
 (*Game Panel*)
 
-
+showFinalScore[nb_NotebookObject]:=
+  TemplateApply["Your final score is: `1`.",
+    {getScore@CurrentValue[nb, {TaggingRules, "Game"}]}
+  ]
+whenGameOver[msg_,$gameover]:=
+  With[{nb=EvaluationNotebook[]},
+    CurrentValue[nb, {TaggingRules, "Running"}]=$gameover;
+    MessageDialog[
+      Column[{msg, showFinalScore[nb]}, Alignment->Left],
+      {
+        "Quit":>NotebookClose[nb]
+      },
+      WindowTitle->"Game Over!"
+    ]
+  ]
 SetAttributes[doGameUpdate,HoldAll]
-doGameUpdate[game_,turnto_]:=(
-  game=update[game,turnto];
-  turnto=Inherited;)
+doGameUpdate[game_,turnto_]:=
+  Catch[
+    game=update[game,turnto];
+    turnto=Inherited,
+    $gameover,
+    whenGameOver
+  ]
 actionToggleRunStatus[]:=With[
     {run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]},
-    run=!run
+    run=!run/;BooleanQ[run]
   ]
 actionTurnTo[direct_]:=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=direct
 
@@ -491,7 +510,7 @@ gameMainUi[]:=
             doGameUpdate[game,turnto];
             snakePrimitives[game],
             UpdateInterval->Dynamic[
-              If[run, $iSnakeGameRates[[speed]], Infinity],
+              If[TrueQ@run, $iSnakeGameRates[[speed]], Infinity],
               TrackedSymbols:>{run,speed}
             ],
             TrackedSymbols->{}
