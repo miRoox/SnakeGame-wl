@@ -461,6 +461,10 @@ SnakeGame/:Show[game_SnakeGame]:=
   ]
 
 
+(* ::Subsubsection::Closed:: *)
+(*Game Panel*)
+
+
 SetAttributes[doGameUpdate,HoldAll]
 doGameUpdate[game_,turnto_]:=(
   game=update[game,turnto];
@@ -505,13 +509,24 @@ gameMainUi[]:=
       CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=setSpeed[game,speed];(*out*)
     ]
   ]
+
+
+gameToolbar:=
+  Grid[{{
+    ,
+  }}
+  ]
+
+
 gameEventDispatch={(* TODO: maybe close? *)
   "EscapeKeyDown":>actionToggleRunStatus[],
   "LeftArrowKeyDown":>actionTurnTo["Left"],{"KeyDown","D"}:>actionTurnTo["Left"],
   "RightArrowKeyDown":>actionTurnTo["Right"],{"KeyDown","A"}:>actionTurnTo["Right"],
   "UpArrowKeyDown":>actionTurnTo["Up"],{"KeyDown","W"}:>actionTurnTo["Up"],
-  "DownArrowKeyDown":>actionTurnTo["Down"],{"KeyDown","S"}:>actionTurnTo["Down"],
+  "DownArrowKeyDown":>actionTurnTo["Down"],{"KeyDown","S"}:>actionTurnTo["Down"]
 }
+
+
 ExecSnake[game_SnakeGame]:=
   CreateWindow[
     DialogNotebook[
@@ -523,7 +538,7 @@ ExecSnake[game_SnakeGame]:=
         "Game"->game
       },
       NotebookEventActions->gameEventDispatch,
-      DockedCells->{} (* TODO: Toolbar *)
+      DockedCells->Cell[BoxData@ToBoxes[gameToolbar],"DockedCells"]
     ]
   ]
 
