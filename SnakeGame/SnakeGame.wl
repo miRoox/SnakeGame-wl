@@ -368,7 +368,7 @@ validateSnake[game_SnakeGame]/;IntersectingQ[getSnakeBody@game,getWalls@game]:=T
 validateSnake[game_SnakeGame]:=game
 
 
-eatenQ[game_SnakeGame]:=getBouns@game===First@getSnakeBody@game
+eatenQ[game_SnakeGame]:=getBonus@game===First@getSnakeBody@game
 generateBonus[game_SnakeGame]:=setBonus[game,RandomChoice[getEmptyGround[game]]]
 increaseScore[game_SnakeGame]:=setScore[game,getScore[game]+1]
 maybeBonus[game_SnakeGame]/;eatenQ[game]:=setGrowing[game,True]//increaseScore//generateBonus
