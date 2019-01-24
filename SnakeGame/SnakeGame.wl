@@ -562,10 +562,18 @@ gameToolbar:=
 
 gameEventDispatch={(* TODO: maybe close? *)
   "EscapeKeyDown":>actionToggleRunStatus[],
-  "LeftArrowKeyDown":>actionTurnTo["Left"],{"KeyDown","D"}:>actionTurnTo["Left"],
-  "RightArrowKeyDown":>actionTurnTo["Right"],{"KeyDown","A"}:>actionTurnTo["Right"],
-  "UpArrowKeyDown":>actionTurnTo["Up"],{"KeyDown","W"}:>actionTurnTo["Up"],
-  "DownArrowKeyDown":>actionTurnTo["Down"],{"KeyDown","S"}:>actionTurnTo["Down"]
+  "LeftArrowKeyDown":>actionTurnTo["Left"],
+  "RightArrowKeyDown":>actionTurnTo["Right"],
+  "UpArrowKeyDown":>actionTurnTo["Up"],
+  "DownArrowKeyDown":>actionTurnTo["Down"],
+  {"KeyDown","A"}:>actionTurnTo["Left"],
+  {"KeyDown","D"}:>actionTurnTo["Right"],
+  {"KeyDown","W"}:>actionTurnTo["Up"],
+  {"KeyDown","S"}:>actionTurnTo["Down"],
+  {"KeyDown","a"}:>actionTurnTo["Left"],
+  {"KeyDown","d"}:>actionTurnTo["Right"],
+  {"KeyDown","w"}:>actionTurnTo["Up"],
+  {"KeyDown","s"}:>actionTurnTo["Down"]
 }
 
 
