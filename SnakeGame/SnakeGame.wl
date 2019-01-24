@@ -410,7 +410,7 @@ iNewSnakeGame[map_SnakeMap,speed_Integer]:=
 
 PlaySnakeGame[opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[opts]]
 PlaySnakeGame[game_SnakeGame,opts:OptionsPattern[]]:=
-  ExecSnake@setGameOptions[game,FilterRules[opts,Options[setGameOptions]]]
+  ExecSnake@setGameOptions[game,Sequence@@FilterRules[{opts},Options[setGameOptions]]]
 PlaySnakeGame[map_SnakeMap,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
 PlaySnakeGame[game_String?archiveFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
 PlaySnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
