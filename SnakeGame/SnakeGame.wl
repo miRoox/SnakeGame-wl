@@ -478,13 +478,15 @@ showFinalScore[nb_NotebookObject]:=
   ]
 whenGameOver[msg_,$gameover]:=
   With[{nb=EvaluationNotebook[]},
-    CurrentValue[nb, {TaggingRules, "Running"}]=$gameover;
-    MessageDialog[
-      Column[{msg, showFinalScore[nb]}, Alignment->Left],
-      {
-        "Quit":>NotebookClose[nb]
-      },
-      WindowTitle->"Game Over!"
+    If[CurrentValue[nb, {TaggingRules, "Running"}]=!=$gameover,
+      CurrentValue[nb, {TaggingRules, "Running"}]=$gameover;
+      MessageDialog[
+        Column[{msg, showFinalScore[nb]}, Alignment->Left],
+        {
+          "Quit":>NotebookClose[nb]
+        },
+        WindowTitle->"Game Over!"
+      ]
     ]
   ]
 SetAttributes[doGameUpdate,HoldAll]
