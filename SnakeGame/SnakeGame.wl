@@ -504,12 +504,7 @@ actionTurnTo[direct_]:=CurrentValue[EvaluationNotebook[], {TaggingRules, "Turnin
 
 gameMainUi[]:=
   DynamicModule[
-    {
-      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}],
-      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}],
-      game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}],
-      turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]
-    },
+    {run, speed, game, turnto},
     DynamicWrapper[
       Pane[
         Graphics[{
@@ -524,8 +519,8 @@ gameMainUi[]:=
           ],
           Dynamic[bonusPrimitive[game],TrackedSymbols:>{game}]
         },
-          Prolog->mapPrimitives@getMap[game],
-          PlotRange->Transpose@{{1,1},1+getMapSize@game}
+          Prolog->Dynamic@Refresh[mapPrimitives@getMap[game],None],
+          PlotRange->Dynamic@Refresh[Transpose@{{1,1},1+getMapSize@game},None]
         ],
         Alignment->Center
       ],(*Synchronize*)
@@ -533,7 +528,13 @@ gameMainUi[]:=
       speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];(*in*)
       turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}];(*in*)
       CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=setSpeed[game,speed];(*out*)
-    ]
+    ],
+    Initialization:>(
+      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];
+      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];
+      game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}];
+      turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}];
+    )
   ]
 
 runStatusToggler:=Toggler[
