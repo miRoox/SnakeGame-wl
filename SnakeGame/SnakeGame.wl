@@ -496,8 +496,8 @@ doGameUpdate[game_,turnto_]:=
     whenGameOver
   ]
 actionToggleRunStatus[]:=With[
-    {run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]},
-    run=!run/;BooleanQ[run]
+    {run:=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]},
+    If[BooleanQ[run],run=!run]
   ]
 actionTurnTo[direct_]:=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=direct
 
@@ -508,10 +508,10 @@ gameMainUi[]:=
     DynamicWrapper[
       Pane[
         Graphics[{
-          Dynamic[
+          Dynamic@Refresh[
             doGameUpdate[game,turnto];
             snakePrimitives[game],
-            UpdateInterval->Dynamic[
+            UpdateInterval->Refresh[(* issue: change running status trigger refresh*)
               If[TrueQ@run, $iSnakeGameRates[[speed]], Infinity],
               TrackedSymbols:>{run,speed}
             ],
