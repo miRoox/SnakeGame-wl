@@ -501,7 +501,10 @@ actionToggleRunStatus[]:=With[
     {run:=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]},
     If[BooleanQ[run],run=!run]
   ]
-actionTurnTo[direct_]:=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=direct
+actionTurnTo[direct_]:=
+  If[TrueQ@CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}],
+    CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=direct
+  ]
 
 
 gameMainUi[]:=
