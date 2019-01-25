@@ -38,16 +38,19 @@ $DefaultSnakeInitialDirection::usage="$DefaultSnakeInitialDirection is the defau
 $gameover::usage="$gameover is an internal symbol."
 
 
-Options[NewSnakeGame]=
+Options[PlaySnakeGame]=
   {
     "SpeedLevel"->Automatic,
     "MapSize"->Automatic,
     "StartingPoint"->Automatic,
     "InitialDirection"->Automatic
   }
-Options[PlaySnakeGame]=Options[NewSnakeGame]
-
-
+Options[NewSnakeGame]=
+  {
+    "MapSize"->Automatic,
+    "StartingPoint"->Automatic,
+    "InitialDirection"->Automatic
+  }
 Options[CreateSnakeMap]=
   {
     "MapSize"->Automatic,
@@ -77,7 +80,7 @@ SetAttributes[{SnakeGame,SnakeMap},ReadProtected]
 BeginPackage["`GUI`"]
 
 
-ExecSnake::usage="ExecSnake[game] execute the snake game."
+ExecSnake::usage="ExecSnake[game,\[Ellipsis]] execute the snake game."
 
 
 EndPackage[]
@@ -292,34 +295,32 @@ CreateSnakeMap[arg_,opts:OptionsPattern[]]:=(
 
 (* ::Text:: *)
 (*SnakeGame data layout:*)
-(*SnakeGame[map, speed, {body, direction, growing}, bonus, score]*)
+(*SnakeGame[map, {body, direction, growing}, bonus, score]*)
 
 
-initSnakeGame[]:=SnakeGame[initSnakeMap[],1,{{},$iDefaultSnakeInitialDirection,False},{0,0},0](*Invalid to use!*)
+initSnakeGame[]:=SnakeGame[initSnakeMap[],{{},$iDefaultSnakeInitialDirection,False},{0,0},0](*Invalid to use!*)
 
 
 getMap[game_SnakeGame]:=game[[1]]
-getSpeed[game_SnakeGame]:=game[[2]]
-getSnakeBody[game_SnakeGame]:=game[[3,1]]
-getSnakeDirection[game_SnakeGame]:=game[[3,2]]
-isGrowing[game_SnakeGame]:=game[[3,3]]
-getBonus[game_SnakeGame]:=game[[4]]
-getScore[game_SnakeGame]:=game[[5]]
+getSnakeBody[game_SnakeGame]:=game[[2,1]]
+getSnakeDirection[game_SnakeGame]:=game[[2,2]]
+isGrowing[game_SnakeGame]:=game[[2,3]]
+getBonus[game_SnakeGame]:=game[[3]]
+getScore[game_SnakeGame]:=game[[4]]
 
 
 setMap[game_SnakeGame,map_SnakeMap]:=ReplacePart[game,1->map]
-setSpeed[game_SnakeGame,speed_Integer]:=ReplacePart[game,2->speed]
-setSnakeBody[game_SnakeGame,body_List]:=ReplacePart[game,{3,1}->body]
-setSnakeDirection[game_SnakeGame,direct_]:=ReplacePart[game,{3,2}->direct]
-setGrowing[game_SnakeGame,growing:(True|False)]:=ReplacePart[game,{3,3}->growing]
-setBonus[game_SnakeGame,bonus_List]:=ReplacePart[game,4->bonus]
-setScore[game_SnakeGame,score_Integer]:=ReplacePart[game,5->score]
+setSnakeBody[game_SnakeGame,body_List]:=ReplacePart[game,{2,1}->body]
+setSnakeDirection[game_SnakeGame,direct_]:=ReplacePart[game,{2,2}->direct]
+setGrowing[game_SnakeGame,growing:(True|False)]:=ReplacePart[game,{2,3}->growing]
+setBonus[game_SnakeGame,bonus_List]:=ReplacePart[game,3->bonus]
+setScore[game_SnakeGame,score_Integer]:=ReplacePart[game,4->score]
 
 
 (*currying*)
 Do[
   With[{f=f},f[arg_][game_]:=f[game,arg]],
-  {f,{setMap,setSpeed,setSnakeBody,setSnakeDirection,setGrowing,setBonus,setScore}}
+  {f,{setMap,setSnakeBody,setSnakeDirection,setGrowing,setBonus,setScore}}
 ]
 
 
@@ -382,24 +383,18 @@ update[game_SnakeGame,turnto_]:=game//turnTo[turnto]//moveSnake//validateSnake//
 (*New/Renew*)
 
 
-changeSpeed[game_SnakeGame,Automatic|Inherited]:=game
-changeSpeed[game_SnakeGame,speed_Integer]:=setSpeed[game,speed]/;0<speed<=Length@$SnakeGameRates
-changeSpeed[game_SnakeGame,speed_]:=(Message[SnakeGame::invspd,speed];game)
+resolveSpeed[Automatic|Inherited]:=Floor[Length@$iSnakeGameRates/2]
+resolveSpeed[speed_Integer]:=speed/;0<speed<=Length@$iSnakeGameRates
+resolveSpeed[speed_]:=(Message[SnakeGame::invspd,speed];resolveSpeed[Automatic])
 
 
-Options[setGameOptions]={"SpeedLevel"->Automatic}
-setGameOptions[game_SnakeGame,opts:OptionsPattern[]]:=changeSpeed[game,OptionValue["SpeedLevel"]]
-
-
-iNewSnakeGame[map_SnakeMap,Automatic]:=iNewSnakeGame[map,Floor[Length@$iSnakeGameRates/2]]
-iNewSnakeGame[map_SnakeMap,speed_Integer]:=
+iNewSnakeGame[map_SnakeMap]:=
   With[
     {snake=getInitSnake@map,
      direct=getInitDirection@map},
     initSnakeGame[]//setMap[map]
                    //setSnakeBody[snake]
                    //setSnakeDirection[direct]
-                   //setSpeed[speed]
                    //generateBonus
   ]
 
@@ -408,22 +403,27 @@ iNewSnakeGame[map_SnakeMap,speed_Integer]:=
 (*Application*)
 
 
-PlaySnakeGame[opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[opts]]
+PlaySnakeGame[opts:OptionsPattern[]]:=
+  PlaySnakeGame[NewSnakeGame@@FilterRules[{opts},OptionsPattern[NewSnakeGame]],opts]
 PlaySnakeGame[game_SnakeGame,opts:OptionsPattern[]]:=
-  ExecSnake@setGameOptions[game,Sequence@@FilterRules[{opts},Options[setGameOptions]]]
-PlaySnakeGame[map_SnakeMap,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
+  ExecSnake[game,resolveSpeed@OptionValue["SpeedLevel"]]
+PlaySnakeGame[map_SnakeMap,opts:OptionsPattern[]]:=
+  PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
 PlaySnakeGame[game_String?archiveFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
-PlaySnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
-PlaySnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
+PlaySnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=
+  PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
+PlaySnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=
+  PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
 PlaySnakeGame[game_File?archiveFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
-PlaySnakeGame[map_File?mapFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[NewSnakeGame[map,opts]]
+PlaySnakeGame[map_File?mapFileQ,opts:OptionsPattern[]]:=
+  PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
 PlaySnakeGame[arg_,opts:OptionsPattern[]]:=(
   Message[PlaySnakeGame::unkarg,arg,HoldForm@PlaySnakeGame[arg,opts],1];
   $Failed)
 
 
 NewSnakeGame[opts:OptionsPattern[]]:=NewSnakeGame[CreateSnakeMap@@FilterRules[{opts},Options[CreateSnakeMap]],opts]
-NewSnakeGame[map_SnakeMap,OptionsPattern[]]:=iNewSnakeGame[map,OptionValue["SpeedLevel"]]
+NewSnakeGame[map_SnakeMap,OptionsPattern[]]:=iNewSnakeGame[map]
 NewSnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
 NewSnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=
   NewSnakeGame[CreateSnakeMap[map,Sequence@@FilterRules[{opts},Options[CreateSnakeMap]]],opts]
@@ -529,7 +529,7 @@ gameMainUi[]:=
       run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];(*in*)
       speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];(*in*)
       turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}];(*in*)
-      CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=setSpeed[game,speed];(*out*)
+      CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=game;(*out*)
     ],
     Initialization:>(
       run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];
@@ -579,14 +579,14 @@ gameEventDispatch={(* TODO: maybe close? *)
 }
 
 
-ExecSnake[game_SnakeGame]:=
+ExecSnake[game_SnakeGame,speed_Integer]:=
   CreateWindow[
     DialogNotebook[
       gameMainUi[],
       TaggingRules->{
         "Running"->True,
         "TurningTo"->Inherited,
-        "SpeedLevel"->getSpeed[game],
+        "SpeedLevel"->speed,
         "Game"->game
       },
       NotebookEventActions->gameEventDispatch,
