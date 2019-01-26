@@ -476,81 +476,102 @@ showFinalScore[nb_NotebookObject]:=
   TemplateApply["Your final score is: `1`.",
     {getScore@CurrentValue[nb, {TaggingRules, "Game"}]}
   ]
-whenGameOver[msg_,$gameover]:=
-  With[{nb=EvaluationNotebook[]},
-    If[CurrentValue[nb, {TaggingRules, "Running"}]=!=$gameover,
-      CurrentValue[nb, {TaggingRules, "Running"}]=$gameover;
-      MessageDialog[
-        Column[{msg, showFinalScore[nb]}, Alignment->Left],
-        {
-          "Quit":>NotebookClose[nb]
-        },
-        WindowTitle->"Game Over!"
-      ]
+whenGameOver[nb_NotebookObject][msg_,$gameover]:=
+  If[CurrentValue[nb,{TaggingRules,"RunStatus"}]=!="Removed",
+    removeDriverTask[nb];
+    MessageDialog[
+      Column[{msg, showFinalScore[nb]}, Alignment->Left],
+      {
+        "Quit":>NotebookClose[nb]
+      },
+      WindowTitle->"Game Over!"
     ]
   ]
-SetAttributes[doGameUpdate,HoldAll]
-doGameUpdate[game_,turnto_]:=
-  Catch[
-    game=update[game,turnto];
-    turnto=Inherited,
-    $gameover,
-    whenGameOver
+removeDriverTask[nb_NotebookObject]:=
+  With[
+    {task=CurrentValue[nb,{TaggingRules,"Driver"}],
+      run:=CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]},
+    If[run=!="Removed",
+      run="Removed";
+      TaskRemove[task] (*remove it if already exists*)
+    ]
   ]
+setDriverTask[nb_NotebookObject,speed_Integer]:=(
+  CurrentValue[nb,{TaggingRules,"Driver"}]=SessionSubmit@ScheduledTask[
+    With[{
+      game:=CurrentValue[nb,{TaggingRules,"Game"}],
+      turnto:=CurrentValue[nb,{TaggingRules,"TurningTo"}]
+    },
+      Catch[
+        game=update[game,turnto];
+        turnto=Inherited,
+        $gameover,
+        whenGameOver[nb]
+      ]
+    ],
+    $iSnakeGameRates[[speed]]
+  ];
+  CurrentValue[nb,{TaggingRules,"RunStatus"}]="Running";
+)
+resetDriverTask[nb_NotebookObject,speed_Integer]:=(
+  removeDriverTask[nb];
+  setDriverTask[nb,speed];
+)
+
 actionToggleRunStatus[]:=With[
-    {run:=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]},
-    If[BooleanQ[run],run=!run]
+    {task=CurrentValue[EvaluationNotebook[],{TaggingRules,"Driver"}],
+     run:=CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]},
+    Switch[run,
+      "Running",
+        TaskSuspend[task];
+        run="Suspended";,
+      "Suspended",
+        TaskResume[task];
+        run="Running";
+    ]
   ]
 actionTurnTo[direct_]:=
-  If[TrueQ@CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}],
+  If[CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]==="Running",
     CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}]=direct
   ]
 
 
-gameMainUi[]:=
-  DynamicModule[
-    {run, speed, game, turnto},
+gameMainUi[speed_]:=
+  DynamicModule[{game},
     DynamicWrapper[
       Pane[
         Graphics[{
-          Dynamic@Refresh[
-            doGameUpdate[game,turnto];
-            snakePrimitives[game],
-            UpdateInterval->Refresh[(* issue: change running status trigger refresh*)
-              If[TrueQ@run, $iSnakeGameRates[[speed]], Infinity],
-              TrackedSymbols:>{run,speed}
-            ],
-            TrackedSymbols->{}
-          ],
-          Dynamic[bonusPrimitive[game],TrackedSymbols:>{game}]
+          Dynamic[snakePrimitives[game]],
+          Dynamic[bonusPrimitive[game]]
         },
           Prolog->Dynamic@Refresh[mapPrimitives@getMap[game],None],
           PlotRange->Dynamic@Refresh[Transpose@{{1,1},1+getMapSize@game},None]
         ],
         Alignment->Center
-      ],(*Synchronize*)
-      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];(*in*)
-      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];(*in*)
-      turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}];(*in*)
-      CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]=game;(*out*)
+      ],
+      game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]
     ],
     Initialization:>(
-      run=CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}];
-      speed=CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}];
       game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}];
-      turnto=CurrentValue[EvaluationNotebook[], {TaggingRules, "TurningTo"}];
-    )
+      setDriverTask[EvaluationNotebook[],speed];
+    ),
+    Deinitialization:>(removeDriverTask[EvaluationNotebook[]])
   ]
 
-runStatusToggler:=Toggler[
-    Dynamic[CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]],
-    {
-      True->Mouseover[stopIcon,stopHoverIcon],
-      False->Mouseover[runIcon,runHoverIcon]
-    },
-    overIcon,
-    Enabled->Dynamic[BooleanQ[CurrentValue[EvaluationNotebook[], {TaggingRules, "Running"}]]]
+runStatusToggler:=
+  With[{run:=CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]},
+    Button[
+      Dynamic@Switch[run,
+        "Running",Mouseover[stopIcon,stopHoverIcon],
+        "Suspended",Mouseover[runIcon,runHoverIcon],
+        _,overIcon
+      ],
+      actionToggleRunStatus[],
+      Enabled->Dynamic[MatchQ[run,"Running"|"Suspended"]],
+      Appearance->"Frameless"
+    ]
   ]
+
 scoreView:=Row@{
     "Score: ",
     Dynamic[getScore@CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]]
@@ -585,11 +606,11 @@ gameEventDispatch={(* TODO: maybe close? *)
 ExecSnake[game_SnakeGame,speed_Integer]:=
   CreateWindow[
     DialogNotebook[
-      gameMainUi[],
-      TaggingRules->{
-        "Running"->True,
+      gameMainUi[speed],
+      TaggingRules->{(*TODO: resolve untracked task object status problem*)
+        "Driver"->Automatic,
+        "RunStatus"->"Waiting",
         "TurningTo"->Inherited,
-        "SpeedLevel"->speed,
         "Game"->game
       },
       NotebookEventActions->gameEventDispatch,
