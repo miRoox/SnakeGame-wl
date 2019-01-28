@@ -488,46 +488,52 @@ whenGameOver[nb_NotebookObject][msg_,$gameover]:=
     ]
   ]
 removeDriverTask[nb_NotebookObject]:=
-  With[
-    {task=CurrentValue[nb,{TaggingRules,"Driver"}],
-      run:=CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]},
+  With[{
+    task=ReleaseHold@CurrentValue[nb,{TaggingRules,"TaskHandle"}],
+    run:=CurrentValue[nb,{TaggingRules,"RunStatus"}]
+  },
     If[run=!="Removed",
       run="Removed";
       TaskRemove[task] (*remove it if already exists*)
     ]
   ]
-setDriverTask[nb_NotebookObject,speed_Integer]:=(
-  CurrentValue[nb,{TaggingRules,"Driver"}]=SessionSubmit@ScheduledTask[
-    With[{
-      game:=CurrentValue[nb,{TaggingRules,"Game"}],
-      turnto:=CurrentValue[nb,{TaggingRules,"TurningTo"}]
-    },
-      Catch[
-        game=update[game,turnto];
-        turnto=Inherited,
-        $gameover,
-        whenGameOver[nb]
-      ]
-    ],
-    $iSnakeGameRates[[speed]]
-  ];
-  CurrentValue[nb,{TaggingRules,"RunStatus"}]="Running";
-)
+setDriverTask[nb_NotebookObject,speed_Integer]:=
+  With[{tasksym=Unevaluated@@CurrentValue[nb,{TaggingRules,"TaskHandle"}]},
+    tasksym=SessionSubmit@ScheduledTask[
+      With[{
+        game:=CurrentValue[nb,{TaggingRules,"Game"}],
+        turnto:=CurrentValue[nb,{TaggingRules,"TurningTo"}]
+      },
+        Catch[
+          If[CurrentValue[nb,{TaggingRules,"RunStatus"}]==="Running",
+            game=update[game,turnto];
+            turnto=Inherited
+          ],
+          $gameover,
+          whenGameOver[nb]
+        ]
+      ],
+      $iSnakeGameRates[[speed]]
+    ];
+    CurrentValue[nb,{TaggingRules,"RunStatus"}]="Running";
+  ]
 resetDriverTask[nb_NotebookObject,speed_Integer]:=(
   removeDriverTask[nb];
   setDriverTask[nb,speed];
 )
 
-actionToggleRunStatus[]:=With[
-    {task=CurrentValue[EvaluationNotebook[],{TaggingRules,"Driver"}],
-     run:=CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]},
+actionToggleRunStatus[]:=
+  With[{
+    task=ReleaseHold@CurrentValue[EvaluationNotebook[],{TaggingRules,"TaskHandle"}],
+    run:=CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]
+  },
     Switch[run,
       "Running",
-        TaskSuspend[task];
-        run="Suspended";,
+        run="Suspended";
+        TaskSuspend[task];,
       "Suspended",
-        TaskResume[task];
         run="Running";
+        TaskResume[task];
     ]
   ]
 actionTurnTo[direct_]:=
@@ -555,7 +561,12 @@ gameMainUi[speed_]:=
       game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}];
       setDriverTask[EvaluationNotebook[],speed];
     ),
-    Deinitialization:>(removeDriverTask[EvaluationNotebook[]])
+    Deinitialization:>(
+      removeDriverTask[EvaluationNotebook[]];
+      With[{tasksym=Unevaluated@@CurrentValue[EvaluationNotebook[],{TaggingRules,"TaskHandle"}]},
+        Remove[tasksym]
+      ];
+    )
   ]
 
 runStatusToggler:=
@@ -607,8 +618,8 @@ ExecSnake[game_SnakeGame,speed_Integer]:=
   CreateWindow[
     DialogNotebook[
       gameMainUi[speed],
-      TaggingRules->{(*TODO: resolve untracked task object status problem*)
-        "Driver"->Automatic,
+      TaggingRules->{
+        "TaskHandle"->Hold[Evaluate@Unique[task$]],(*warning: the task object should be owned by a symbol.*)
         "RunStatus"->"Waiting",
         "TurningTo"->Inherited,
         "Game"->game
