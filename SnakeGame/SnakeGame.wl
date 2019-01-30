@@ -478,7 +478,7 @@ showFinalScore[nb_NotebookObject]:=
   ]
 whenGameOver[nb_NotebookObject][msg_,$gameover]:=
   If[CurrentValue[nb,{TaggingRules,"RunStatus"}]=!="Removed",
-    removeDriverTask[nb];
+    removeUpdateTask[nb];
     MessageDialog[
       Column[{msg, showFinalScore[nb]}, Alignment->Left],
       {
@@ -487,7 +487,7 @@ whenGameOver[nb_NotebookObject][msg_,$gameover]:=
       WindowTitle->"Game Over!"
     ]
   ]
-removeDriverTask[nb_NotebookObject]:=
+removeUpdateTask[nb_NotebookObject]:=
   With[{
     task=ReleaseHold@CurrentValue[nb,{TaggingRules,"TaskHandle"}],
     run:=CurrentValue[nb,{TaggingRules,"RunStatus"}]
@@ -497,7 +497,7 @@ removeDriverTask[nb_NotebookObject]:=
       TaskRemove[task] (*remove it if already exists*)
     ]
   ]
-setDriverTask[nb_NotebookObject,speed_Integer]:=
+setUpdateTask[nb_NotebookObject,speed_Integer]:=
   With[{tasksym=Unevaluated@@CurrentValue[nb,{TaggingRules,"TaskHandle"}]},
     tasksym=SessionSubmit@ScheduledTask[
       With[{
@@ -517,9 +517,9 @@ setDriverTask[nb_NotebookObject,speed_Integer]:=
     ];
     CurrentValue[nb,{TaggingRules,"RunStatus"}]="Running";
   ]
-resetDriverTask[nb_NotebookObject,speed_Integer]:=(
-  removeDriverTask[nb];
-  setDriverTask[nb,speed];
+resetUpdateTask[nb_NotebookObject,speed_Integer]:=(
+  removeUpdateTask[nb];
+  setUpdateTask[nb,speed];
 )
 
 actionToggleRunStatus[]:=
@@ -559,10 +559,10 @@ gameMainUi[speed_]:=
     ],
     Initialization:>(
       game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}];
-      setDriverTask[EvaluationNotebook[],speed];
+      setUpdateTask[EvaluationNotebook[],speed];
     ),
     Deinitialization:>(
-      removeDriverTask[EvaluationNotebook[]];
+      removeUpdateTask[EvaluationNotebook[]];
       With[{tasksym=Unevaluated@@CurrentValue[EvaluationNotebook[],{TaggingRules,"TaskHandle"}]},
         Remove[tasksym]
       ];
