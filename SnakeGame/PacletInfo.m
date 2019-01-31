@@ -1,5 +1,5 @@
 
-Palcet[
+Paclet[
   Name->"SnakeGame",
   Version->"0.1.0",
   WolframVersion->"11.2+",
