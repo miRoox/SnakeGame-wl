@@ -28,6 +28,7 @@ SaveSnakeMap::usage="SaveSnakeMap[file,map] saves the snake map to the file."
 LoadSnakeMap::usage="LoadSnakeMap[file] loads the snake map from the file."
 SnakeGame::usage="SnakeGame[\[Ellipsis]] represents a snake game archive."
 SnakeMap::usage="SnakeMap[\[Ellipsis]] represents a snake map."
+ExecSnake::usage="ExecSnake is an internal symbol."
 
 
 $SnakeMapTemplates::usage="$SnakeMapTemplates lists the template names can be used for snake map."
@@ -67,20 +68,7 @@ SyntaxInformation[LoadSnakeMap]={"ArgumentsPattern"->{_,OptionsPattern[]}}
 
 
 SetAttributes[{PlaySnakeGame,NewSnakeGame,SaveSnakeGame,LoadSnakeGame,CreateSnakeMap,SaveSnakeMap,LoadSnakeMap},ReadProtected]
-SetAttributes[{SnakeGame,SnakeMap},ReadProtected]
-
-
-(* ::Subsection:: *)
-(*GUI*)
-
-
-BeginPackage["`GUI`"]
-
-
-ExecSnake::usage="ExecSnake[game,\[Ellipsis]] execute the snake game."
-
-
-EndPackage[]
+SetAttributes[{SnakeGame,SnakeMap,ExecSnake},ReadProtected]
 
 
 (* ::Section:: *)

@@ -2,13 +2,27 @@
 Palcet[
   Name->"SnakeGame",
   Version->"0.1.0",
+  WolframVersion->"11.2+",
   Creator->"miRoox <miRoox@outlook.com>",
   Description->"A Snake game.",
+  Loading->Automatic,
   Extensions->{
     {
       "Kernel",
       "Root"->".",
-      "Context"->{"SnakeGame`","SnakeGame`GUI`"}
+      "Context"->{"SnakeGame`"},
+      "Symbols"->{
+        "SnakeGame`SnakeGame",
+        "SnakeGame`SnakeMap",
+        "SnakeGame`PlaySnakeGame",
+        "SnakeGame`NewSnakeGame",
+        "SnakeGame`SaveSnakeGame",
+        "SnakeGame`LoadSnakeGame",
+        "SnakeGame`CreateSnakeMap",
+        "SnakeGame`SaveSnakeMap",
+        "SnakeGame`LoadSnakeMap",
+        "SnakeGame`ExecSnake"
+      }
     }
   }
 ]
