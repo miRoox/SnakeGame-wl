@@ -32,9 +32,6 @@ SnakeMap::usage="SnakeMap[\[Ellipsis]] represents a snake map."
 
 $SnakeMapTemplates::usage="$SnakeMapTemplates lists the template names can be used for snake map."
 $SnakeDirections::usage="$SnakeDirections gives the valid direction names."
-$SnakeGameRates::usage="$SnakeGameRates is a settable global variable that specifies the game rates."
-$DefaultSnakeMapSize::usage="$DefaultSnakeMapSize is the default setting for the size of snake map."
-$DefaultSnakeInitialDirection::usage="$DefaultSnakeInitialDirection is the default setting for the initial direction of snake map."
 $gameover::usage="$gameover is an internal symbol."
 
 
@@ -124,6 +121,7 @@ mapFileQ[file:(_String|_File)]:=StringMatchQ[FileExtension[file],"MAP",IgnoreCas
 mapTemplateQ[temp_String]:=MemberQ[$SnakeMapTemplates,temp]
 
 
+valueCheckingFunctor[check_]:=If[check[#],#,$Failed]&
 validMapSizeQ=MatchQ[{w_Integer/;w>4,l_Integer/;l>4}|(sl_Integer/;sl>4)]
 validDirectionQ:=validDirectionQ=MatchQ[Alternatives@@$SnakeDirections]
 
@@ -150,23 +148,19 @@ $SnakeMapTemplates={"Empty","Enclosed","Random"}
 (*Settable*)
 
 
-(* ::Text:: *)
-(*Maybe PersistentValue is better?*)
+PersistentValue["SnakeGame/Rates","Installation",
+  ValuePreprocessingFunction->valueCheckingFunctor[VectorQ[#,Positive]&]]={1.0,0.5,0.3,0.2,0.1}
+$iSnakeGameRates:=PersistentValue["SnakeGame/Rates"]
 
 
-$SnakeGameRates/:Unset[$SnakeGameRates]:=$SnakeGameRates={3.0,2.0,1.0,0.6,0.3}
-$SnakeGameRates=.
-$iSnakeGameRates:=If[VectorQ[$SnakeGameRates,Positive],$SnakeGameRates,$SnakeGameRates=.]
+PersistentValue["SnakeGame/DefaultMapSize","Installation",
+  ValuePreprocessingFunction->valueCheckingFunctor[validMapSizeQ]]={16,16}
+$iDefaultSnakeMapSize:=PersistentValue["SnakeGame/DefaultMapSize"]
 
 
-$DefaultSnakeMapSize/:Unset[$DefaultSnakeMapSize]:=$DefaultSnakeMapSize={16,16}
-$DefaultSnakeMapSize=.
-$iDefaultSnakeMapSize:=If[validMapSizeQ[$DefaultSnakeMapSize],$DefaultSnakeMapSize,$DefaultSnakeMapSize=.]
-
-
-$DefaultSnakeInitialDirection/:Unset[$DefaultSnakeInitialDirection]:=$DefaultSnakeInitialDirection="Left"
-$DefaultSnakeInitialDirection=.
-$iDefaultSnakeInitialDirection:=If[validDirectionQ[$SnakeDirections],$DefaultSnakeInitialDirection,$DefaultSnakeInitialDirection=.]
+PersistentValue["SnakeGame/DefaultInitialDirection","Installation",
+  ValuePreprocessingFunction->valueCheckingFunctor[validDirectionQ]]="Left"
+$iDefaultSnakeInitialDirection:=PersistentValue["SnakeGame/DefaultInitialDirection"]
 
 
 (* ::Subsection::Closed:: *)
