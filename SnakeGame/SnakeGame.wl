@@ -122,7 +122,7 @@ mapTemplateQ[temp_String]:=MemberQ[$SnakeMapTemplates,temp]
 
 
 valueCheckingFunctor[check_]:=If[check[#],#,$Failed]&
-validMapSizeQ=MatchQ[{w_Integer/;w>4,l_Integer/;l>4}|(sl_Integer/;sl>4)]
+validMapSizeQ=MatchQ[{_Integer?(GreaterThan[4]),_Integer?(GreaterThan[4])}|(_Integer?(GreaterThan[4]))]
 validDirectionQ:=validDirectionQ=MatchQ[Alternatives@@$SnakeDirections]
 
 
