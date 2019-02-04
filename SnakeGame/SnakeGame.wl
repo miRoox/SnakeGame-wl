@@ -550,15 +550,24 @@ gameMainUi[speed_]:=
 
 runStatusToggler:=
   With[{run:=CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]},
-    Button[
-      Dynamic@Switch[run,
-        "Running",Mouseover[stopIcon,stopHoverIcon],
-        "Suspended",Mouseover[runIcon,runHoverIcon],
-        _,overIcon
-      ],
-      actionToggleRunStatus[],
-      Enabled->Dynamic[MatchQ[run,"Running"|"Suspended"]],
-      Appearance->"Frameless"
+    Dynamic@Switch[run,
+      "Running",
+        Button[Null,actionToggleRunStatus[],
+          Appearance->{
+            "Default" -> FrontEnd`FileName[{"SnakeGame"}, "StopButton.png"],
+            "Hover" -> FrontEnd`FileName[{"SnakeGame"}, "StopButton-Hover.png"],
+            "Pressed" -> FrontEnd`FileName[{"SnakeGame"}, "StopButton-Pressed.png"]
+          }
+        ],
+      "Suspended",
+        Button[Null,actionToggleRunStatus[],
+          Appearance->{
+            "Default" -> FrontEnd`FileName[{"SnakeGame"}, "RunButton.png"],
+            "Hover" -> FrontEnd`FileName[{"SnakeGame"}, "RunButton-Hover.png"],
+            "Pressed" -> FrontEnd`FileName[{"SnakeGame"}, "RunButton-Pressed.png"]
+          }
+        ],
+      _,Button[Null,Enabled->False,Appearance->FrontEnd`FileName[{"SnakeGame"}, "DisabledButton.png"]]
     ]
   ]
 

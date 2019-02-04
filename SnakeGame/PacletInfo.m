@@ -23,6 +23,10 @@ Paclet[
         "SnakeGame`LoadSnakeMap",
         "SnakeGame`ExecSnake"
       }
+    },
+    {
+      "FrontEnd",
+      Prepend->True
     }
   }
 ]
