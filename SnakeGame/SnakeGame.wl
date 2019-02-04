@@ -428,9 +428,7 @@ stopHoverIcon=Graphics[{Red,Rectangle[{0.2,0.2},{0.4,0.8}],Rectangle[{0.6,0.2},{
 overIcon=Graphics[{Lighter@Gray,Thickness[0.15],Circle[{0.5,0.5},0.35],Line[{{0.27,0.27},{0.73,0.73}}]},PlotRange->{{0,1},{0,1}},ImageSize->32]
 
 
-bonusBasePrimitive=
-  (ImplicitRegion[(x^2+y^2-1)^3<=x^2*y^3,{x,y}]//Region//Show//First)/.
-    {Directive[_]:>Directive[Red,EdgeForm[Yellow]]}
+bonusBase=RegionPlot[(x^2+y^2-1/9)^3<=x^2*y^3,{x,-1/2,1/2},{y,-1/2,1/2},PlotStyle->Red,BoundaryStyle->Yellow,Frame->None]
 
 
 mapPrimitives[map_SnakeMap]:={
@@ -438,8 +436,7 @@ mapPrimitives[map_SnakeMap]:={
     {Gray,Rectangle/@getWalls[map]}
   }
 snakePrimitives[game_SnakeGame]:={Darker@Green,Rectangle/@getSnakeBody[game]}
-bonusPrimitive[game_SnakeGame]:=
-  GeometricTransformation[bonusBasePrimitive,AffineTransform[{{{1/3,0},{0,1/3}},getBonus[game]+1/2}]]
+bonusPrimitive[game_SnakeGame]:=Inset[bonusBase,getBonus[game]+1/2,Automatic,{1,1}]
 
 
 SnakeMap/:Show[map_SnakeMap]:=Graphics@mapPrimitives[map]
