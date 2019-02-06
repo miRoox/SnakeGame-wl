@@ -580,10 +580,10 @@ scoreView:=Row@{
 gameToolbar:=
   Grid[{{
     runStatusToggler,
-    Null,
     scoreView
   }},
-    ItemSize->{Scaled /@ {0.2, 0.6, 0.2}}
+    Alignment->{{Left,Right}},
+    ItemSize->{{Scaled[0.75],Scaled[0.25]}}
   ]
 
 
