@@ -548,26 +548,29 @@ gameMainUi[speed_]:=
     )
   ]
 
+gamePauseButton:=
+  Button[Null,actionToggleRunStatus[],
+    Appearance->{
+      "Default"->FrontEnd`FileName[{"SnakeGame"}, "StopButton.png"],
+      "Hover"->FrontEnd`FileName[{"SnakeGame"}, "StopButton-Hover.png"],
+      "Pressed"->FrontEnd`FileName[{"SnakeGame"}, "StopButton-Pressed.png"]
+    }
+  ]
+gameContinueButton:=
+  Button[Null,actionToggleRunStatus[],
+    Appearance->{
+      "Default"->FrontEnd`FileName[{"SnakeGame"}, "RunButton.png"],
+      "Hover"->FrontEnd`FileName[{"SnakeGame"}, "RunButton-Hover.png"],
+      "Pressed"->FrontEnd`FileName[{"SnakeGame"}, "RunButton-Pressed.png"]
+    }
+  ]
 runStatusToggler:=
-  Dynamic@Switch[CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}],
-    "Running",
-      Button[Null,actionToggleRunStatus[],
-        Appearance->{
-          "Default" -> FrontEnd`FileName[{"SnakeGame"}, "StopButton.png"],
-          "Hover" -> FrontEnd`FileName[{"SnakeGame"}, "StopButton-Hover.png"],
-          "Pressed" -> FrontEnd`FileName[{"SnakeGame"}, "StopButton-Pressed.png"]
-        }
-      ],
-    "Suspended",
-      Button[Null,actionToggleRunStatus[],
-        Appearance->{
-          "Default" -> FrontEnd`FileName[{"SnakeGame"}, "RunButton.png"],
-          "Hover" -> FrontEnd`FileName[{"SnakeGame"}, "RunButton-Hover.png"],
-          "Pressed" -> FrontEnd`FileName[{"SnakeGame"}, "RunButton-Pressed.png"]
-        }
-      ],
-    _,
-      RawBoxes@DynamicBox@FEPrivate`ImportImage@FrontEnd`FileName[{"SnakeGame"}, "DisabledButton.png"]
+  PaneSelector[{
+    "Running"->gamePauseButton,
+    "Suspended"->gameContinueButton
+  },
+    Dynamic[CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]],
+    RawBoxes@DynamicBox@FEPrivate`ImportImage@FrontEnd`FileName[{"SnakeGame"}, "DisabledButton.png"]
   ]
 
 scoreView:=Row@{
