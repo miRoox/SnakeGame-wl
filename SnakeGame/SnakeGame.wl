@@ -585,7 +585,7 @@ toolbarControls:=
     "Running"->gamePauseButton,
     "Suspended"->Row@{
       gameContinueButton,
-      Invisible["mmm"],
+      Invisible["m"],
       speedControlSetter
     }
   },
@@ -603,7 +603,8 @@ gameToolbar:=
     scoreView
   }},
     Alignment->{{Left,Right}},
-    ItemSize->{{Scaled[0.75],Scaled[0.25]}}
+    ItemSize->{{Scaled[0.75],Scaled[0.25]}},
+    BaseStyle->{16, FontFamily->"Comic Sans MS"}
   ]
 
 
@@ -637,7 +638,8 @@ ExecSnake[game_SnakeGame,speed_Integer]:=
       },
       NotebookEventActions->gameEventDispatch,
       DockedCells->Cell[BoxData@ToBoxes[gameToolbar],"DockedCells"]
-    ]
+    ],
+    WindowTitle->"Snake Game"
   ]
 
 
