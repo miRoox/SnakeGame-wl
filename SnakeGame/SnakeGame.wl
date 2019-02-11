@@ -494,12 +494,15 @@ setUpdateTask[nb_NotebookObject,speed_Integer]:=
       ],
       $iSnakeGameRates[[speed]]
     ];
+    CurrentValue[nb,{TaggingRules,"SpeedLevel"}]=speed;
     CurrentValue[nb,{TaggingRules,"RunStatus"}]="Running";
   ]
-resetUpdateTask[nb_NotebookObject,speed_Integer]:=(
-  removeUpdateTask[nb];
-  setUpdateTask[nb,speed];
-)
+changeGameSpeed[speed_Integer/;CurrentValue[EvaluationNotebook[],{TaggingRules,"SpeedLevel"}]!=speed]:=
+  PreemptProtect[
+    removeUpdateTask[EvaluationNotebook[]];
+    setUpdateTask[EvaluationNotebook[],speed];
+    actionToggleRunStatus[];(*Suspend*)
+  ]
 
 actionToggleRunStatus[]:=
   With[{
@@ -564,10 +567,26 @@ gameContinueButton:=
       "Pressed"->FrontEnd`FileName[{"SnakeGame"}, "RunButton-Pressed.png"]
     }
   ]
-runStatusToggler:=
+speedControlSetter:=
+  Row@{
+    "Speed: ",
+    SetterBar[
+      Dynamic[
+        CurrentValue[EvaluationNotebook[],{TaggingRules,"SpeedLevel"}],
+        changeGameSpeed[#]&
+      ],
+      Range[Length[$iSnakeGameRates]],
+      Appearance->"Palette"
+    ]
+  }
+toolbarControls:=
   PaneSelector[{
     "Running"->gamePauseButton,
-    "Suspended"->gameContinueButton
+    "Suspended"->Row@{
+      gameContinueButton,
+      Invisible["mmm"],
+      speedControlSetter
+    }
   },
     Dynamic[CurrentValue[EvaluationNotebook[],{TaggingRules,"RunStatus"}]],
     RawBoxes@DynamicBox@FEPrivate`ImportImage@FrontEnd`FileName[{"SnakeGame"}, "DisabledButton.png"]
@@ -579,7 +598,7 @@ scoreView:=Row@{
   }
 gameToolbar:=
   Grid[{{
-    runStatusToggler,
+    toolbarControls,
     scoreView
   }},
     Alignment->{{Left,Right}},
@@ -611,6 +630,7 @@ ExecSnake[game_SnakeGame,speed_Integer]:=
       TaggingRules->{
         "TaskHandle"->Hold[Evaluate@Unique[task$]],(*warning: the task object should be owned by a symbol.*)
         "RunStatus"->"Waiting",
+        "SpeedLevel"->speed,
         "TurningTo"->Inherited,
         "Game"->game
       },
