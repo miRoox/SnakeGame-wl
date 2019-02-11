@@ -365,7 +365,7 @@ update[game_SnakeGame,turnto_]:=game//turnTo[turnto]//moveSnake//validateSnake//
 (*New/Renew*)
 
 
-resolveSpeed[Automatic|Inherited]:=Floor[Length@$iSnakeGameRates/2]
+resolveSpeed[Automatic|Inherited]:=Ceiling[Length@$iSnakeGameRates/2]
 resolveSpeed[speed_Integer]:=speed/;0<speed<=Length@$iSnakeGameRates
 resolveSpeed[speed_]:=(Message[SnakeGame::invspd,speed];resolveSpeed[Automatic])
 
