@@ -104,6 +104,9 @@ SnakeGame::wall="Hit the wall!"
 (*General Utilities*)
 
 
+autoCurrying2[f_]:=f[arg2_][arg1_]:=f[arg1,arg2]
+
+
 archiveFileQ[file:(_String|_File)]:=StringMatchQ[FileExtension[file],"SAV",IgnoreCase->True]
 mapFileQ[file:(_String|_File)]:=StringMatchQ[FileExtension[file],"MAP",IgnoreCase->True]
 mapTemplateQ[temp_String]:=MemberQ[$SnakeMapTemplates,temp]
@@ -180,9 +183,8 @@ setInitDirection[map_SnakeMap,direct_]:=ReplacePart[map,{3,2}->direct]
 
 
 (*currying*)
-Do[
-  With[{f=f},f[arg_][map_]:=f[map,arg]],
-  {f,{setMapSize,setWalls,setInitSnake,setInitDirection}}
+Scan[autoCurrying2,
+  {setMapSize,setWalls,setInitSnake,setInitDirection}
 ]
 
 
@@ -199,7 +201,7 @@ mapPosition[Scaled[{sx_,sy_}],{w_,l_}]:=Round@RescalingTransform[{{0,1},{0,1}},{
 mapPosition[{x_Real,y_Real},{w_,l_}]:=mapPosition[Round@{x,y},{w,l}]
 mapPosition[{x_Integer,y_Integer},{w_,l_}]:=Mod[{x,y},{w,l},1]
 mapPosition[pos_,size_]:=(Message[SnakeMap::invpos,pos];mapPosition[Automatic,size])
-mapPosition[size_][pos_]:=mapPosition[pos,size]
+autoCurrying2[mapPosition]
 
 
 (* ::Subsubsection::Closed:: *)
@@ -300,9 +302,8 @@ setScore[game_SnakeGame,score_Integer]:=ReplacePart[game,4->score]
 
 
 (*currying*)
-Do[
-  With[{f=f},f[arg_][game_]:=f[game,arg]],
-  {f,{setMap,setSnakeBody,setSnakeDirection,setGrowing,setBonus,setScore}}
+Scan[autoCurrying2,
+  {setMap,setSnakeBody,setSnakeDirection,setGrowing,setBonus,setScore}
 ]
 
 
@@ -328,7 +329,7 @@ getEmptyGround[game_SnakeGame]:=Complement[
 turnTo[game_SnakeGame,Inherited]:=game
 turnTo[game_SnakeGame,direct_]/;oppositeDirectionQ[direct,getSnakeDirection@game]:=game
 turnTo[game_SnakeGame,direct_]:=setSnakeDirection[game,direct]
-turnTo[direct_][game_SnakeGame]:=turnTo[game,direct]
+autoCurrying2[turnTo]
 
 
 movedHead[head_,size_,"Up"]   :=mapPosition[head+{0, 1},size]
