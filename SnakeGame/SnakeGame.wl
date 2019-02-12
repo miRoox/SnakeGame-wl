@@ -188,11 +188,21 @@ $iDefaultSnakeInitialDirection:=PersistentValue["SnakeGame/DefaultInitialDirecti
 
 (* ::Text:: *)
 (*SnakeMap data layout:*)
-(*SnakeMap[{length, width}, walls, {init-snake, init-direction}]*)
+(*SnakeMap[{width, length}, walls, {init-snake, init-direction}]*)
 
 
 initSnakeMap[]:=SnakeMap[{0,0},{},{{},$iDefaultSnakeInitialDirection}](*Invalid to use!*)
-
+validSnakeMapQ[
+  SnakeMap[
+    {w_Integer/;w>4,l_Integer/;l>4},
+    walls:{{_Integer,_Integer}...},
+    {
+      sn:{{_Integer,_Integer}..},
+      _?validDirectionQ
+    }
+  ]/;AllTrue[walls~Join~sn,RegionMember[Rectangle[{1,1},{w,l}]]]
+]=True
+validSnakeMapQ[_]=False
 
 getMapSize[map_SnakeMap]:=map[[1]]
 getWalls[map_SnakeMap]:=map[[2]]
@@ -307,6 +317,19 @@ CreateSnakeMap[arg_,opts:OptionsPattern[]]:=(
 
 
 initSnakeGame[]:=SnakeGame[initSnakeMap[],{{},$iDefaultSnakeInitialDirection,False},{0,0},0](*Invalid to use!*)
+validSnakeGameQ[
+  SnakeGame[
+    map_SnakeMap?validSnakeMapQ,
+    {
+      sn:{{_Integer,_Integer}..},
+      _?validDirectionQ,
+      True|False
+    },
+    bon:{_Integer,_Integer},
+    _Integer?NonNegative
+  ]/;AllTrue[sn~Append~bon,RegionMember[Rectangle[{1,1},getMapSize@map]]]
+]=True
+validSnakeGameQ[_]=False
 
 
 getMap[game_SnakeGame]:=game[[1]]
