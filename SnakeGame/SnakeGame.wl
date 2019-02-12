@@ -8,32 +8,56 @@
 (*Interface*)
 
 
-BeginPackage["SnakeGame`"]
+BeginPackage["SnakeGame`",{"GeneralUtilities`"}]
 
 
 Unprotect[SnakeGame,SnakeMap,$SnakeMapTemplates,$SnakeDirections]
 ClearAll["`*"]
 
 
-PlaySnakeGame::usage="PlaySnakeGame[] plays a new snake game.
-PlaySnakeGame[map] plays a new snake game with the map.
-PlaySnakeGame[game] continues a snake game."
-NewSnakeGame::usage="NewSnakeGame[] creates a new snake game.
-NewSnakeGame[map] creates a new snake game with the map."
-SaveSnakeGame::usage="SaveSnakeGame[file,game] saves the snake game to the file."
-LoadSnakeGame::usage="LoadSnakeGame[file] loads the snake game from the file."
-CreateSnakeMap::usage="CreateSnakeMap[opts] creates snake game.
-CreateSnakeMap[template,opts] creates snake map based on the template."
-SaveSnakeMap::usage="SaveSnakeMap[file,map] saves the snake map to the file."
-LoadSnakeMap::usage="LoadSnakeMap[file] loads the snake map from the file."
-SnakeGame::usage="SnakeGame[\[Ellipsis]] represents a snake game archive."
-SnakeMap::usage="SnakeMap[\[Ellipsis]] represents a snake map."
-ExecSnake::usage="ExecSnake is an internal symbol."
-
-
-$SnakeMapTemplates::usage="$SnakeMapTemplates lists the template names can be used for snake map."
-$SnakeDirections::usage="$SnakeDirections gives the valid direction names."
-$gameover::usage="$gameover is an internal symbol."
+SetUsage[PlaySnakeGame,
+  "PlaySnakeGame[] plays a new snake game.",
+  "PlaySnakeGame[map$] plays a new snake game with the map$.",
+  "PlaySnakeGame[game$] continues the snake game$."
+]
+SetUsage[NewSnakeGame,
+  "NewSnakeGame[] creates a new snake game.",
+  "NewSnakeGame[map$] creates a new snake game with the map$."
+]
+SetUsage[SaveSnakeGame,
+  "SaveSnakeGame[file$, game$] saves the snake game$ to the file$."
+]
+SetUsage[LoadSnakeGame,
+  "LoadSnakeGame[file$] loads the snake game from the file$."
+]
+SetUsage[CreateSnakeMap,
+  "CreateSnakeMap[opts$] creates a snake map.",
+  "CreateSnakeMap[template$, opts$] creates snake map based on the template$."
+]
+SetUsage[SaveSnakeMap,
+  "SaveSnakeMap[file$, map$] saves the snake map$ to the file$."
+]
+SetUsage[LoadSnakeMap,
+  "LoadSnakeMap[file$] loads the snake map from the file$."
+]
+SetUsage[SnakeGame,
+  "SnakeGame[$$] represents a snake game archive."
+]
+SetUsage[SnakeMap,
+  "SnakeMap[$$] represents a snake map."
+]
+SetUsage[ExecSnake,
+  "ExecSnake is an internal symbol."
+]
+SetUsage[$SnakeMapTemplates,
+  "$SnakeMapTemplates lists the template names can be used for snake map."
+]
+SetUsage[$SnakeDirections,
+  "$SnakeDirections gives the valid direction names."
+]
+SetUsage[$gameover,
+  "$gameover is an internal symbol."
+]
 
 
 Options[PlaySnakeGame]=
