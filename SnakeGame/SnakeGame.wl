@@ -137,8 +137,10 @@ SnakeGame::wall="Hit the wall!"
 autoCurrying2[f_]:=f[arg2_][arg1_]:=f[arg1,arg2]
 
 
-archiveFileQ[file:(_String|_File)]:=StringMatchQ[FileExtension[file],"SAV",IgnoreCase->True]
-mapFileQ[file:(_String|_File)]:=StringMatchQ[FileExtension[file],"MAP",IgnoreCase->True]
+maybeGameFileQ[file:(_String|_File)]:=StringMatchQ[FileExtension[file],"SAV",IgnoreCase->True]
+maybeGameFileQ[_]=False
+maybeMapFileQ[file:(_String|_File)]:=StringMatchQ[FileExtension[file],"MAP",IgnoreCase->True]
+maybeMapFileQ[_]=False
 mapTemplateQ[temp_String]:=MemberQ[$SnakeMapTemplates,temp]
 
 
@@ -454,13 +456,10 @@ PlaySnakeGame[game_SnakeGame,opts:OptionsPattern[]]:=
   ExecSnake[game,resolveSpeed@OptionValue["SpeedLevel"]]
 PlaySnakeGame[map_SnakeMap,opts:OptionsPattern[]]:=
   PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
-PlaySnakeGame[game_String?archiveFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
-PlaySnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=
-  PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
 PlaySnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=
   PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
-PlaySnakeGame[game_File?archiveFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
-PlaySnakeGame[map_File?mapFileQ,opts:OptionsPattern[]]:=
+PlaySnakeGame[game_?maybeGameFileQ,opts:OptionsPattern[]]:=PlaySnakeGame[LoadSnakeGame[game],opts]
+PlaySnakeGame[map_?maybeMapFileQ,opts:OptionsPattern[]]:=
   PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
 PlaySnakeGame[arg_,opts:OptionsPattern[]]:=(
   Message[PlaySnakeGame::unkarg,arg,HoldForm@PlaySnakeGame[arg,opts],1];
@@ -469,7 +468,7 @@ PlaySnakeGame[arg_,opts:OptionsPattern[]]:=(
 
 NewSnakeGame[opts:OptionsPattern[]]:=NewSnakeGame[CreateSnakeMap@@FilterRules[{opts},Options[CreateSnakeMap]],opts]
 NewSnakeGame[map_SnakeMap,OptionsPattern[]]:=iNewSnakeGame[map]
-NewSnakeGame[map_String?mapFileQ,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
+NewSnakeGame[map_String?maybeMapFileQ,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
 NewSnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=
   NewSnakeGame[CreateSnakeMap[map,Sequence@@FilterRules[{opts},Options[CreateSnakeMap]]],opts]
 NewSnakeGame[map_File,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[map,opts]]
