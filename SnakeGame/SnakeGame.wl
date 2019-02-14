@@ -164,7 +164,7 @@ oppositeDirectionQ[_,_]=False
 
 
 $SnakeDirections={"Up","Down","Right","Left"}
-$SnakeMapTemplates={"Empty","Enclosed","Random"}
+$SnakeMapTemplates={"Empty","Enclosed"}
 
 
 (* ::Subsubsection::Closed:: *)
@@ -287,8 +287,6 @@ generateWalls["Enclosed",{w_,l_}]:=Union[
     Thread[{Range[w],1}],
     Thread[{Range[w],l}]
   ]
-generateWalls["Random",{w_,l_}]:=
-  RandomVariate[DiscreteUniformDistribution[{{1,w},{1,l}}],RandomInteger[{1,w*l/2}]]//DeleteDuplicates
 
 
 iCreateSnakeMap[temp_String,opts_Association]:=
