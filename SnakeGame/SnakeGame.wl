@@ -114,6 +114,12 @@ CreateSnakeMap::unkarg="Unknown argument `1` at postion `3` in `2`.
 Only map template is valid."
 
 
+SaveSnakeGame::invsnk="`1` is not a valid snake game."
+LoadSnakeGame::invsnk="`1` is not a valid snake game archive."
+SaveSnakeMap::invsnk="`1` is not a valid snake map."
+LoadSnakeMap::invsnk="`1` is not a valid snake map archive."
+
+
 SnakeMap::invsiz="Size specification `1` is invalid. Use default setting instead."
 SnakeMap::invpos="Postion specification `1` is invalid. Use default setting instead."
 
@@ -303,6 +309,15 @@ CreateSnakeMap[arg_,opts:OptionsPattern[]]:=(
   $Failed)
 
 
+SaveSnakeMap[file_,map_?validSnakeMapQ]:=Export[file,map,"WXF"]
+SaveSnakeMap[_,map_]:=(Message[SaveSnakeMap::invsnk,map];$Failed)
+LoadSnakeMap[file_]:=
+  With[{result=Import[file,"WXF"]},
+    result /;validSnakeMapQ[result]
+  ]
+LoadSnakeMap[file_]:=(Message[LoadSnakeMap::invsnk,file];$Failed)
+
+
 (* ::Subsection::Closed:: *)
 (*Game*)
 
@@ -463,6 +478,15 @@ NewSnakeGame[map_CloudObject,opts:OptionsPattern[]]:=NewSnakeGame[LoadSnakeMap[m
 NewSnakeGame[arg_,opts:OptionsPattern[]]:=(
   Message[NewSnakeGame::unkarg,arg,HoldForm@NewSnakeGame[arg,opts],1];
   $Failed)
+
+
+SaveSnakeGame[file_,game_?validSnakeGameQ]:=Export[file,game,"WXF"]
+SaveSnakeGame[_,game_]:=(Message[SaveSnakeGame::invsnk,game];$Failed)
+LoadSnakeGame[file_]:=
+  With[{result=Import[file,"WXF"]},
+    result /;validSnakeGameQ[result]
+  ]
+LoadSnakeGame[file_]:=(Message[LoadSnakeGame::invsnk,file];$Failed)
 
 
 (* ::Subsection::Closed:: *)
