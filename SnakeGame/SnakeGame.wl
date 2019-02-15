@@ -559,7 +559,7 @@ setUpdateTask[nb_NotebookObject,speed_Integer]:=
     CurrentValue[nb,{TaggingRules,"SpeedLevel"}]=speed;
     CurrentValue[nb,{TaggingRules,"RunStatus"}]="Running";
   ]
-changeGameSpeed[speed_Integer/;CurrentValue[EvaluationNotebook[],{TaggingRules,"SpeedLevel"}]!=speed]:=
+changeGameSpeed[speed_Integer,prevSpeed_Integer]/;prevSpeed=!=speed:=
   PreemptProtect[
     removeUpdateTask[EvaluationNotebook[]];
     setUpdateTask[EvaluationNotebook[],speed];
@@ -635,7 +635,7 @@ speedControlSetter:=
     SetterBar[
       Dynamic[
         CurrentValue[EvaluationNotebook[],{TaggingRules,"SpeedLevel"}],
-        changeGameSpeed[#]&
+        changeGameSpeed
       ],
       Range[Length[$iSnakeGameRates]],
       Appearance->"Palette"
