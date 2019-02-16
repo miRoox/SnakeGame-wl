@@ -246,6 +246,19 @@ mapPosition[pos_,size_]:=(Message[SnakeMap::invpos,pos];mapPosition[Automatic,si
 autoCurrying2[mapPosition]
 
 
+getMapType[map_SnakeMap]:=
+  With[{walls=getWalls[map],size=getMapSize[map]},
+    Catch[
+      Do[
+        If[walls===generateWalls[type,size],Throw[type,"MapType"]],
+        {type,$SnakeMapTemplates}
+      ];
+      "Custom",
+      "MapType"
+    ]
+  ]
+
+
 (* ::Subsubsection::Closed:: *)
 (*Create*)
 
@@ -501,17 +514,91 @@ snakePrimitives[game_SnakeGame]:={Darker@Green,Rectangle/@getSnakeBody[game]}
 bonusPrimitive[game_SnakeGame]:=Inset[bonusBase,getBonus[game]+1/2,Automatic,{1,1}]
 
 
-SnakeMap/:Show[map_SnakeMap]:=Graphics@mapPrimitives[map]
-SnakeGame/:Show[game_SnakeGame]:=
-  Graphics[
-    {snakePrimitives[game],bonusPrimitive[game]},
-    Prolog->mapPrimitives@getMap[game],
-    PlotRange->Transpose@{{1,1},1+getMapSize@game}
+SnakeMap/:Show[map_SnakeMap,o:OptionsPattern[Graphics]]:=Show[Graphics@mapPrimitives[map],o]
+SnakeGame/:Show[game_SnakeGame,o:OptionsPattern[Graphics]]:=
+  Show[
+    Graphics[
+      {snakePrimitives[game],bonusPrimitive[game]},
+      Prolog->mapPrimitives@getMap[game],
+      PlotRange->Transpose@{{1,1},1+getMapSize@game}
+    ],
+    o
+  ]
+
+
+(* ::Subsubsection::Closed:: *)
+(*summary box*)
+
+
+With[
+  {bg=GrayLevel[0.75],fg=GrayLevel[0.65],
+  slx=6,sly=4,sw=0.2,bc={4.25,4},br=1.5},
+  SnakeGame/:BoxForm`GenericIcon[SnakeGame]:=Graphics[{
+      {
+        CapForm["Round"],JoinForm["Round"],Thickness[sw],fg,
+        JoinedCurve[{
+          Line[{{0,sly},{-1/2slx,sly}}],
+          BezierCurve[{{-1/2slx,sly},{-slx,3/8sly},{-1/2slx,0}}],
+          Line[{{-1/2slx,0},{1/2slx,0}}],
+          BezierCurve[{{1/2slx,0},{slx,-3/8sly},{1/2slx,-sly}}],
+          Line[{{1/2slx,-sly},{0,-sly}}]
+        }]
+      },
+      {
+        CapForm["Round"],Thickness[3/8sw],bg,
+        Line[{{1.2,sly},{0,sly}}]
+      },
+      {bg,Disk[{-1.5,sly+0.4},0.5]},
+      {fg,Rotate[Rectangle[bc-br,bc+br,RoundingRadius->Scaled[.05]],Pi/4,bc]},
+      {bg,Disk[bc,0.4br]}
+    },
+      Background->bg,PlotRange->7.5,ElisionsDump`commonGraphicsOptions
+    ]
+]
+
+
+SnakeMap/:MakeBoxes[map_SnakeMap,fmt_]/;BoxForm`UseIcons&&validSnakeMapQ[map]:=
+  Module[{icon,alwaysGrid,sometimesGrid,w,l},
+    {w,l}=getMapSize[map];
+    alwaysGrid={
+      BoxForm`SummaryItem@{"Size: ",Row@{w,"\[Times]",l}},
+      BoxForm`SummaryItem@{"Type: ",getMapType[map]}
+    };
+    sometimesGrid={
+      BoxForm`SummaryItem@{"Starting Point: ",First@getInitSnake[map]},
+      BoxForm`SummaryItem@{"Initial Direction: ",getInitDirection[map]}
+    };
+    icon=If[w<64&&l<64,
+      Show[map,ElisionsDump`commonGraphicsOptions],
+      BoxForm`GenericIcon[SnakeGame]
+    ];
+    BoxForm`ArrangeSummaryBox[SnakeMap,map,icon,alwaysGrid,sometimesGrid,fmt]
+  ]
+
+
+SnakeGame/:MakeBoxes[game_SnakeGame,fmt_]/;BoxForm`UseIcons&&validSnakeGameQ[game]:=
+  Module[{icon,alwaysGrid,sometimesGrid,map,w,l},
+    map=getMap[game];
+    {w,l}=getMapSize[map];
+    alwaysGrid={
+      BoxForm`SummaryItem@{"Score: ",getScore[game]},
+      BoxForm`SummaryItem@{"Direction: ",getSnakeDirection[game]}
+    };
+    sometimesGrid={
+      BoxForm`SummaryItem@{"Map Size: ",Row@{w,"\[Times]",l}},
+      BoxForm`SummaryItem@{"Map Type: ",getMapType[map]}
+    };
+    icon=If[w<64&&l<64,
+      Show[game,ElisionsDump`commonGraphicsOptions],
+      BoxForm`GenericIcon[SnakeGame]
+    ];
+    BoxForm`ArrangeSummaryBox[SnakeGame,game,icon,alwaysGrid,sometimesGrid,fmt]
   ]
 
 
 (* ::Subsubsection::Closed:: *)
 (*Game Panel*)
+
 
 showFinalScore[nb_NotebookObject]:=
   TemplateApply["Your final score is: `1`.",
