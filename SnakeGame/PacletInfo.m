@@ -1,7 +1,7 @@
 
 Paclet[
   Name->"SnakeGame",
-  Version->"0.1.0",
+  Version->"0.5.0",
   WolframVersion->"11.2+",
   Creator->"miRoox <miRoox@outlook.com>",
   Description->"A Snake game.",
