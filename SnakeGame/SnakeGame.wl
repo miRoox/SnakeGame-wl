@@ -673,7 +673,7 @@ actionTurnTo[direct_]:=
   ]
 
 
-gameMainUi[speed_]:=
+gameMainUi:=
   DynamicModule[{game},
     DynamicWrapper[
       Pane[
@@ -690,7 +690,7 @@ gameMainUi[speed_]:=
     ],
     Initialization:>(
       game=CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}];
-      setUpdateTask[EvaluationNotebook[],speed];
+      setUpdateTask[EvaluationNotebook[],CurrentValue[EvaluationNotebook[], {TaggingRules, "SpeedLevel"}]];
     ),
     Deinitialization:>(
       removeUpdateTask[EvaluationNotebook[]];
@@ -776,7 +776,7 @@ gameEventDispatch={(* TODO: maybe close? *)
 ExecSnake[game_SnakeGame,speed_Integer]:=
   CreateWindow[
     DialogNotebook[
-      gameMainUi[speed],
+      gameMainUi,
       TaggingRules->{
         "TaskHandle"->Hold[Evaluate@Unique[task$]],(*warning: the task object should be owned by a symbol.*)
         "RunStatus"->"Waiting",
