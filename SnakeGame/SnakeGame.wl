@@ -46,9 +46,6 @@ SetUsage[SnakeGame,
 SetUsage[SnakeMap,
   "SnakeMap[$$] represents a snake map."
 ]
-SetUsage[ExecSnake,
-  "ExecSnake is an internal symbol."
-]
 SetUsage[$SnakeMapTemplates,
   "$SnakeMapTemplates lists the template names can be used for snake map."
 ]
@@ -92,7 +89,7 @@ SyntaxInformation[LoadSnakeMap]={"ArgumentsPattern"->{_,OptionsPattern[]}}
 
 
 SetAttributes[{PlaySnakeGame,NewSnakeGame,SaveSnakeGame,LoadSnakeGame,CreateSnakeMap,SaveSnakeMap,LoadSnakeMap},ReadProtected]
-SetAttributes[{SnakeGame,SnakeMap,ExecSnake},ReadProtected]
+SetAttributes[{SnakeGame,SnakeMap},ReadProtected]
 
 
 (* ::Section:: *)
@@ -464,7 +461,7 @@ iNewSnakeGame[map_SnakeMap]:=
 PlaySnakeGame[opts:OptionsPattern[]]:=
   PlaySnakeGame[NewSnakeGame@@FilterRules[{opts},OptionsPattern[NewSnakeGame]],opts]
 PlaySnakeGame[game_SnakeGame,opts:OptionsPattern[]]:=
-  ExecSnake[game,resolveSpeed@OptionValue["SpeedLevel"]]
+  execSnake[game,resolveSpeed@OptionValue["SpeedLevel"]]
 PlaySnakeGame[map_SnakeMap,opts:OptionsPattern[]]:=
   PlaySnakeGame[NewSnakeGame[map,Sequence@@FilterRules[{opts},OptionsPattern[NewSnakeGame]]],opts]
 PlaySnakeGame[map_String?mapTemplateQ,opts:OptionsPattern[]]:=
@@ -773,7 +770,7 @@ gameEventDispatch={(* TODO: maybe close? *)
 }
 
 
-ExecSnake[game_SnakeGame,speed_Integer]:=
+execSnake[game_SnakeGame,speed_Integer]:=
   CreateWindow[
     DialogNotebook[
       gameMainUi,
