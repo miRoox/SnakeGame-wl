@@ -123,12 +123,15 @@ SnakeMap::invpos="Postion specification `1` is invalid. Use default setting inst
 
 SnakeGame::invdrt="Direction specification `1` is invalid. Use default setting instead."
 SnakeGame::invspd="Speed specification `1` is invalid. Use default setting instead."
-SnakeGame::self="Ouroboros!"
-SnakeGame::wall="Hit the wall!"
 
 
 (* ::Subsection::Closed:: *)
 (*General Utilities*)
+
+
+Needs["ResourceLocator`"]
+$root=DirectoryName[$InputFileName]
+tr=TextResourceLoad["SnakeGame", $root]
 
 
 autoCurrying2[f_]:=f[arg2_][arg1_]:=f[arg1,arg2]
@@ -419,8 +422,8 @@ moveSnake[game_SnakeGame]:=
   ]
 
 
-validateSnake[game_SnakeGame]/;(!DuplicateFreeQ@getSnakeBody@game):=Throw[SnakeGame::self,$gameover]
-validateSnake[game_SnakeGame]/;IntersectingQ[getSnakeBody@game,getWalls@game]:=Throw[SnakeGame::wall,$gameover]
+validateSnake[game_SnakeGame]/;(!DuplicateFreeQ@getSnakeBody@game):=Throw[tr["Ouroboros!"],$gameover]
+validateSnake[game_SnakeGame]/;IntersectingQ[getSnakeBody@game,getWalls@game]:=Throw[tr["Hit the wall!"],$gameover]
 validateSnake[game_SnakeGame]:=game
 
 
@@ -598,7 +601,7 @@ SnakeGame/:MakeBoxes[game_SnakeGame,fmt_]/;BoxForm`UseIcons&&validSnakeGameQ[gam
 
 
 showFinalScore[nb_NotebookObject]:=
-  TemplateApply["Your final score is: `1`.",
+  TemplateApply[tr["Your final score is: `1`."],
     {getScore@CurrentValue[nb, {TaggingRules, "Game"}]}
   ]
 whenGameOver[nb_NotebookObject][msg_,$gameover]:=
@@ -607,9 +610,9 @@ whenGameOver[nb_NotebookObject][msg_,$gameover]:=
     MessageDialog[
       Column[{msg, showFinalScore[nb]}, Alignment->Left],
       {
-        "Quit":>NotebookClose[nb]
+        tr["Quit"]:>NotebookClose[nb]
       },
-      WindowTitle->"Game Over!"
+      WindowTitle->tr["Game Over!"]
     ]
   ]
 removeUpdateTask[nb_NotebookObject]:=
@@ -715,7 +718,7 @@ gameContinueButton:=
   ]
 speedControlSetter:=
   Row@{
-    "Speed: ",
+    tr["Speed: "],
     SetterBar[
       Dynamic[
         CurrentValue[EvaluationNotebook[],{TaggingRules,"SpeedLevel"}],
@@ -739,7 +742,7 @@ toolbarControls:=
   ]
 
 scoreView:=Row@{
-    "Score: ",
+    tr["Score: "],
     Dynamic[getScore@CurrentValue[EvaluationNotebook[], {TaggingRules, "Game"}]]
   }
 gameToolbar:=
@@ -784,7 +787,7 @@ execSnake[game_SnakeGame,speed_Integer]:=
       NotebookEventActions->gameEventDispatch,
       DockedCells->Cell[BoxData@ToBoxes[gameToolbar],"DockedCells"]
     ],
-    WindowTitle->"Snake Game"
+    WindowTitle->tr["Snake Game"]
   ]
 
 
